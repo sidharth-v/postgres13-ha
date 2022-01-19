@@ -1,0 +1,53 @@
+app:
+    name: Postgres HA Replica
+    code: POSTGRESHAREPLICA
+    notify: svengathattil@ecloudcontrol.com
+    
+build:
+    version: 13.X
+    env: DEV
+    build_file: none
+    output_files: output/*.zip
+    image_template: postgres_ha-13.3
+    
+deploy:
+    context: sidharth-v/DEV
+    type: statefulset
+    replicas: 3
+    port:
+    - 5432
+    
+volumes:
+  - claim: postgres-replica-data
+    mount: /appz/data
+    name: data
+    size: 5Gi
+    mode: ReadWriteOnce   
+  - claim: postgres-replica-home
+    mount: /appz/home
+    name: home
+    size: 5Gi
+    mode: ReadWriteOnce   
+  - claim: postgres-replica-backup
+    mount: /appz/backup
+    name: backup
+    size: 5Gi
+    mode: ReadWriteOnce  
+    
+properties:
+    POSTGRESQL_CONNECTUSER: postgres
+    POSTGRESQL_CONNECTIONDB: postgres
+    POSTGRESQL_PORT: 5432
+    POSTGRESQL_PASSWORD: 
+      vault: POSTGRESQL_PASSWORD
+    POSTGRESQL_SPRINGBOOTWEB_PASSWORD:
+          vault: POSTGRESQL_SPRINGBOOTWEB_PASSWORD
+    revision : 84
+
+    #WebDav Setup
+    PUSH_BACKUP_WEBDAV: False
+    DAV_FOLDER: DBBACKUP
+    DAV_USER: appz
+    DAV_USERPASSWORD:
+      vault: DAV_USERPASSWORD
+    WEBDAV_BACKUP_URL: http://webdav-2-0/
